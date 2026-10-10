@@ -958,6 +958,35 @@
               </div>
             </div>
           </sc-if>
+          <sc-if value="{{ isPostPay }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:22px;border:1px solid #DDD5C2;background:#FFFDF7;padding:24px;display:grid;grid-template-columns:{{ colTwqr }};gap:24px;align-items:start">
+              <div style="border:1px solid #E3DCCB;background:#F6F2E9;padding:18px 18px 16px">
+                <div style="font-size:12px;color:#9A7248;margin-bottom:12px;letter-spacing:.1em">郵局匯款帳號</div>
+                <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 14px;font-size:13.5px;color:#3A3A31;align-items:baseline">
+                  <span style="color:#87846F">郵局代號</span><span style="font-size:16px;letter-spacing:.06em;color:#16150F">{{ postAcc.code }}</span>
+                  <span style="color:#87846F">局號</span><span style="font-size:16px;letter-spacing:.06em;color:#16150F">{{ postAcc.branch }}</span>
+                  <span style="color:#87846F">帳號</span><span style="font-size:16px;letter-spacing:.06em;color:#16150F">{{ postAcc.no }}</span>
+                  <span style="color:#87846F">戶名</span><span style="color:#16150F">{{ postAcc.name }}</span>
+                  <span style="color:#87846F">郵局</span><span>{{ postAcc.office }}</span>
+                </div>
+                <span onClick="{{ copyPostAcc }}" style="cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;min-height:42px;border:1px solid #1E3A2F;color:#1E3A2F;font-size:13px" style-hover="background:#1E3A2F;color:#F6F2E9">複製局號＋帳號</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div>
+                  <div style="font-size:12px;color:#9A7248;margin-bottom:5px">本筆應付金額</div>
+                  <div style="font-family:'Noto Serif TC',serif;font-size:30px;color:#8C2F23;line-height:1.2">{{ totalText }}</div>
+                </div>
+                <div style="font-size:13px;line-height:1.95;color:#4A4A40">
+                  1. 以網路銀行、ATM 或臨櫃匯款至左方帳號<br />
+                  2. 跨行轉帳請輸入郵局代號 700，帳號為局號＋帳號共 14 碼<br />
+                  3. 在下方填寫您的匯款帳號末 5 碼，再按「確認下單」
+                </div>
+                <label style="display:grid;gap:6px;font-size:12px;color:#9A7248">匯款帳號末 5 碼（必填）
+                  <input value="{{ payRef }}" onChange="{{ onPayRef }}" inputMode="numeric" maxLength="5" placeholder="例：12345" style="border:1px solid #DDD5C2;background:#FBF9F3;padding:13px 14px;font-size:16px;letter-spacing:.3em;outline:none;color:#16150F" />
+                </label>
+              </div>
+            </div>
+          </sc-if>
           <div style="margin-top:26px;border:1px solid #E3DCCB;background:#F6F2E9;padding:20px;font-size:13px;line-height:1.9;color:#5A5749">
             已選擇：{{ pay }}　·　{{ ship }}　·　應付 {{ totalText }}<br />{{ payNote }}
           </div>
@@ -1408,6 +1437,9 @@
 
   <sc-if value="{{ isLegal }}" hint-placeholder-val="{{ false }}">
     <div style="max-width:780px;margin:0 auto;padding:48px 24px 96px">
+      <sc-if value="{{ fromRegister }}" hint-placeholder-val="{{ false }}">
+        <span onClick="{{ backToRegister }}" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:#1E3A2F;margin-bottom:22px;min-height:44px" style-hover="color:#9A7248">← 返回註冊</span>
+      </sc-if>
       <div style="display:flex;align-items:center;gap:20px;margin-bottom:28px">
         <div style="width:2px;height:48px;background:#C6A780;transform-origin:top;animation:jcLine .8s ease both"></div>
         <div>
@@ -1430,6 +1462,12 @@
         </sc-for>
       </div>
       <div style="margin-top:36px;border-left:3px solid #C6A780;background:#F6F2E9;padding:16px 20px;font-size:12.5px;line-height:1.95;color:#5A5749">最後更新：2026 年 9 月。有任何疑問請來電 037-752-210 或透過聯絡頁詢問。</div>
+      <sc-if value="{{ fromRegister }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px">
+          <span onClick="{{ agreeAndBack }}" style="cursor:pointer;background:#1E3A2F;color:#F6F2E9;padding:0 28px;min-height:48px;display:flex;align-items:center;border-radius:999px;font-size:14px;white-space:nowrap" style-hover="background:#35594A">我已閱讀並同意，返回註冊</span>
+          <span onClick="{{ backToRegister }}" style="cursor:pointer;border:1px solid #DDD5C2;color:#3A3A31;padding:0 24px;min-height:48px;display:flex;align-items:center;border-radius:999px;font-size:14px;white-space:nowrap">返回註冊</span>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -3625,6 +3663,10 @@ class Component extends DCLogic {
   shipFees = { '7-11 店到店': 60, '全家店到店': 60, '郵局': 70, '黑貓宅配': 120 };
   prepaid = { '信用卡': 1, 'LINE Pay': 1 };
   TWQR = '台灣Pay 掃碼付款';
+  POST = '郵局匯款';
+  postAcc = { code: '700', branch: '0291147', no: '0375251', name: '李安仲', office: '通霄郵局' };
+
+  isManualPay(p) { return p === this.TWQR || p === this.POST; }
 
   cardLive() {
     const st = this.getDB().settings || {};
@@ -3633,7 +3675,7 @@ class Component extends DCLogic {
 
   payMethods() {
     const st = this.getDB().settings || {};
-    const list = [this.TWQR];
+    const list = [this.TWQR, this.POST];
     if (this.cardLive()) list.push('信用卡');
     if (st.mode === '正式模式' && st.linePayId && st.linePaySecret) list.push('LINE Pay');
     return list;
@@ -3667,13 +3709,18 @@ class Component extends DCLogic {
 
   resetTwqr = () => { this.mutate(db => { db.settings.twqrImg = ''; }); this.toast('已改回預設收款碼'); };
 
-  isTwqrPending(o) { return o && o.pay === this.TWQR && o.status === '待付款'; }
+  isTwqrPending(o) { return o && this.isManualPay(o.pay) && o.status === '待付款'; }
 
   payNoteOf(o) {
     if (o.pay === this.TWQR) {
       return o.status === '待付款'
         ? '台灣Pay 掃碼：顧客回報末 5 碼 ' + (o.payRef || '未填') + '，請先至收款 App 確認入帳 ' + this.fmt(o.total) + ' 再出貨'
         : '台灣Pay 掃碼已確認入帳（末 5 碼 ' + (o.payRef || '—') + '），請勿向顧客收款';
+    }
+    if (o.pay === this.POST) {
+      return o.status === '待付款'
+        ? '郵局匯款：顧客回報匯款帳號末 5 碼 ' + (o.payRef || '未填') + '，請先至郵局存簿確認入帳 ' + this.fmt(o.total) + ' 再出貨'
+        : '郵局匯款已確認入帳（末 5 碼 ' + (o.payRef || '—') + '），請勿向顧客收款';
     }
     return this.prepaid[o.pay] ? '已線上付款，請勿向顧客收款' : (o.pay === '貨到付款' ? '貨到付款，請向顧客收取 ' + this.fmt(o.total) : '待對帳');
   }
@@ -5884,6 +5931,7 @@ class Component extends DCLogic {
     lines.forEach(l => { if (!l.quoted && l.qty > this.stockOf(l.id)) errs.push(l.name + ' 庫存不足（剩 ' + this.stockOf(l.id) + '）'); });
     if (this.payMethods().indexOf(s.pay) < 0) errs.push('請選擇付款方式');
     if (s.pay === this.TWQR && !/^\d{5}$/.test(String(s.payRef || ''))) errs.push('請完成掃碼付款後，填寫付款帳號末 5 碼');
+    if (s.pay === this.POST && !/^\d{5}$/.test(String(s.payRef || ''))) errs.push('請完成匯款後，填寫您的匯款帳號末 5 碼');
     if (errs.length) { this.setState({ formErr: errs.join('；'), step: errs.length && !lines.length ? 1 : s.step }); this.toast(errs[0]); return; }
 
     const subtotal = lines.reduce((a, l) => a + l.lineTotal, 0);
@@ -5896,7 +5944,7 @@ class Component extends DCLogic {
     const live = db.settings.mode === '正式模式' && db.settings.merchantId && db.settings.merchantKey;
     const isPrepaid = !!this.prepaid[s.pay];
     const status = isPrepaid ? (live ? '待付款' : '收到訂單') : (s.pay === '貨到付款' ? '收到訂單' : '待付款');
-    const payState = s.pay === this.TWQR ? '待確認付款（末5碼 ' + s.payRef + '）'
+    const payState = this.isManualPay(s.pay) ? '待確認付款（末5碼 ' + s.payRef + '）'
       : (isPrepaid ? (live ? '等待授權' : '已入帳（測試模式）') : (s.pay === '貨到付款' ? '貨到收款' : '待對帳'));
     const d = new Date();
     const stamp = String(d.getFullYear()).slice(2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
@@ -5913,7 +5961,7 @@ class Component extends DCLogic {
         note: s.fNote.trim(),
         ship: s.ship, pay: s.pay, promo: s.promo || '', items: lines.map(l => ({ id: l.id, name: l.quoted ? l.name + '（議價）' : l.name, price: l.unit, qty: l.qty, quoted: !!l.quoted })),
         subtotal: subtotal, discount: discount, shipFee: shipFee, total: total, status: status, payState: payState,
-        payRef: s.pay === this.TWQR ? String(s.payRef) : ''
+        payRef: this.isManualPay(s.pay) ? String(s.payRef) : ''
       };
       db2.orders.unshift(order);
       db2.payments.unshift({ no: 'PAY-' + stamp + '-' + String(db2.seq).padStart(3, '0'), order: no, method: s.pay, amount: total, state: payState, date: this.today() + ' ' + order.time });
@@ -6481,6 +6529,13 @@ class Component extends DCLogic {
         bg: s.ship === k ? '#F1F4EF' : '#FBF9F3'
       })),
       isTwqr: s.pay === this.TWQR,
+      isPostPay: s.pay === this.POST,
+      postAcc: this.postAcc,
+      copyPostAcc: () => {
+        const t = this.postAcc.code + ' ' + this.postAcc.branch + this.postAcc.no;
+        try { navigator.clipboard.writeText(this.postAcc.branch + this.postAcc.no); this.toast('已複製帳號 ' + t); }
+        catch (e) { this.toast('帳號：' + t); }
+      },
       onTwqrFile: this.onTwqrFile, resetTwqr: this.resetTwqr,
       colTwqr: s.narrow ? 'minmax(0,1fr)' : '230px minmax(0,1fr)',
       twqrSrc: this.twqrSrc(),
@@ -6526,7 +6581,7 @@ class Component extends DCLogic {
       onFNote: e => this.setState({ fNote: e.target.value }),
       formErr: s.formErr, hasFormErr: !!s.formErr,
       gatewayMode: db.settings.mode,
-      payNote: s.pay === this.TWQR
+      payNote: this.isManualPay(s.pay)
         ? '訂單會先標示為「待確認付款」，商家確認款項入帳後即開始備貨，並以 Email 通知出貨進度。'
         : (db.settings.mode === '正式模式'
           ? '正式模式：訂單成立後將導向金流頁面完成授權。'
@@ -6536,7 +6591,7 @@ class Component extends DCLogic {
       lastStatus: (s.lastOrder || {}).status || '',
       lastEmail: (s.lastOrder || {}).email || '',
       lastPay: (s.lastOrder || {}).pay || '',
-      lastIsTwqr: (s.lastOrder || {}).pay === this.TWQR,
+      lastIsTwqr: this.isManualPay((s.lastOrder || {}).pay),
       lastPayRef: (s.lastOrder || {}).payRef || '',
       lastShip: (s.lastOrder || {}).ship || '',
       lastDate: ((s.lastOrder || {}).date || '') + '　' + ((s.lastOrder || {}).time || ''),
@@ -6655,8 +6710,11 @@ class Component extends DCLogic {
       agreeBg: s.authAgree ? '#1E3A2F' : 'transparent',
       agreeBorder: s.authAgree ? '#1E3A2F' : '#C3BBA6',
       agreeMark: s.authAgree ? '✓' : '',
-      openTerms: e => { if (e && e.stopPropagation) e.stopPropagation(); this.goLegal('terms')(); },
-      openPrivacy: e => { if (e && e.stopPropagation) e.stopPropagation(); this.goLegal('privacy')(); },
+      openTerms: e => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ legalFrom: 'register' }); this.goLegal('terms')(); },
+      openPrivacy: e => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ legalFrom: 'register' }); this.goLegal('privacy')(); },
+      fromRegister: s.legalFrom === 'register' && screen === 'legal',
+      backToRegister: () => { this.setState({ screen: 'member', authMode: 'register', legalFrom: '' }); try { window.scrollTo(0, 0); } catch (e) {} },
+      agreeAndBack: () => { this.setState({ screen: 'member', authMode: 'register', legalFrom: '', authAgree: true, authErr: '' }); try { window.scrollTo(0, 0); } catch (e) {} },
       authErr: s.authErr, hasAuthErr: !!s.authErr,
       doLogin: this.login, doRegister: this.register, doLogout: this.logout,
       meSubscribed: !!(me && me.subscribed !== false),
@@ -6857,7 +6915,7 @@ class Component extends DCLogic {
         onPrint: () => this.setState({ shipFor: o.no }),
         itemsText: (o.items || []).map(it => it.name + ' ×' + it.qty).join('、'),
         qtyText: (o.items || []).reduce((a, it) => a + it.qty, 0) + ' 件',
-        hasPayRef: o.pay === this.TWQR,
+        hasPayRef: this.isManualPay(o.pay),
         payRefText: this.isTwqrPending(o) ? '待確認入帳・末5碼 ' + (o.payRef || '未填') : '已入帳・末5碼 ' + (o.payRef || '—'),
         payRefColor: this.isTwqrPending(o) ? '#8C2F23' : '#2C6B4F',
         email: o.email,
